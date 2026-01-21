@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Heart Disease Assessment - Health Assistant{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="quiz-card">
+        <div class="quiz-header">
+            <i class="fas fa-heartbeat"></i>
+            <h2>Heart Disease Risk Assessment</h2>
+            <p>Answer these questions to evaluate your heart health risk</p>
+        </div>
+
+        <div class="quiz-progress">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <span class="progress-text">Question <span id="current-question">1</span> of <span id="total-questions">10</span></span>
+        </div>
+
+        <div id="quiz" class="quiz-content">
+            <p class="question" id="question"></p>
+            <div class="options" id="options"></div>
+            <button id="next-btn" onclick="nextQuestion()" class="quiz-btn">
+                <span>Next Question</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <div id="result" class="result-section"></div>
+        <div id="precautions" class="precautions-section"></div>
+        <button id="restart-btn" onclick="restartQuiz()" class="quiz-btn restart-btn">
+            <i class="fas fa-redo"></i>
+            <span>Restart Quiz</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .quiz-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .quiz-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 700px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .quiz-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .quiz-header i {
+        font-size: 3rem;
+        color: #ff4757;
+        margin-bottom: 1rem;
+        animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    .quiz-header h2 {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .quiz-header p {
+        color: var(--text-color);
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+
+    .quiz-progress {
+        margin-bottom: 2rem;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: rgba(255, 71, 87, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress {
+        height: 100%;
+        background: linear-gradient(90deg, #ff4757, #ff6b81);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        color: var(--text-color);
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .quiz-content {
+        margin-bottom: 2rem;
+    }
+
+    .question {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .options label {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: rgba(255, 71, 87, 0.1);
+        border: 2px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--text-color);
+    }
+
+    .options label:hover {
+        background: rgba(255, 71, 87, 0.2);
+        transform: translateX(5px);
+    }
+
+    .options input[type="radio"] {
+        margin-right: 1rem;
+        accent-color: #ff4757;
+    }
+
+    .options input[type="radio"]:checked + span {
+        color: #ff4757;
+        font-weight: 500;
+    }
+
+    .quiz-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #ff4757, #ff6b81);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        display: none;
+    }
+
+    .quiz-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+    }
+
+    .quiz-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .quiz-btn:hover i {
+        transform: translateX(5px);
+    }
+
+    .restart-btn {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .restart-btn:hover {
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .result-section {
+        text-align: center;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: rgba(255, 71, 87, 0.1);
+    }
+
+    .result-section h3 {
+        color: #ff4757;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .precautions-section {
+        text-align: center;
+        margin: 1rem 0;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: rgba(46, 204, 113, 0.1);
+    }
+
+    .precautions-section p {
+        color: #2ecc71;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes heartbeat {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+        .quiz-card {
+            padding: 2rem;
+        }
+    }
+</style>
+
+<script>
+    const questions = [
+        { q: "Do you experience chest pain or discomfort, especially during physical activity?", options: ["No, I never feel chest pain.", "Occasionally, but it goes away with rest.", "Yes, I often feel chest pain, even at rest."] },
+        { q: "Have you ever felt irregular heartbeats, palpitations, or a racing heart?", options: ["No, my heartbeat is normal.", "Occasionally, but it resolves quickly.", "Yes, I frequently experience irregular heartbeats."] },
+        { q: "Do you experience swelling in your legs, feet, or ankles?", options: ["No, never.", "Occasionally, but it goes away.", "Yes, my feet or legs swell often."] },
+        { q: "Do you often feel fatigued or excessively tired even without much physical activity?", options: ["No, I feel energetic.", "Sometimes, but only after a long day.", "Yes, I feel tired most of the time."] },
+        { q: "Do you have a history of high blood pressure (hypertension)?", options: ["No, my blood pressure is normal.", "Yes, but it's controlled with medication.", "Yes, I have high blood pressure that is not well-controlled."] },
+        { q: "Do you have high cholesterol levels?", options: ["No, my cholesterol levels are normal.", "Yes, but I manage it with diet or medication.", "Yes, I have high cholesterol and don't take any treatment."] },
+        { q: "Do you have diabetes?", options: ["No, I don't have diabetes.", "Yes, but it is well-controlled.", "Yes, and it is not well-managed."] },
+        { q: "Do you have a family history of heart disease?", options: ["No, no family history.", "Yes, but only distant relatives had heart disease.", "Yes, an immediate family member had heart disease."] },
+        { q: "Do you experience dizziness or fainting episodes?", options: ["No, never.", "Occasionally, but they are mild.", "Yes, I often feel dizzy or have fainted before."] },
+        { q: "Do you feel a heavy, squeezing, or burning sensation in your chest that spreads to your arms, neck, jaw, or back?", options: ["No, I never feel this.", "Sometimes, but it goes away quickly.", "Yes, I frequently feel this discomfort, especially during exertion."] }
+    ];
+    
+    let currentQuestion = 0;
+    let score = 0;
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / questions.length) * 100;
+        document.getElementById("progress").style.width = `${progress}%`;
+        document.getElementById("current-question").textContent = currentQuestion + 1;
+        document.getElementById("total-questions").textContent = questions.length;
+    }
+
+    function displayQuestion() {
+        if (currentQuestion < questions.length) {
+            document.getElementById("question").innerText = questions[currentQuestion].q;
+            let optionsHtml = "";
+            questions[currentQuestion].options.forEach((option, index) => {
+                optionsHtml += `
+                    <label>
+                        <input type='radio' name='option' value='${index}' onclick='enableNext()'>
+                        <span>${option}</span>
+                    </label>`;
+            });
+            document.getElementById("options").innerHTML = optionsHtml;
+            document.getElementById("next-btn").style.display = "none";
+            updateProgress();
+        } else {
+            displayResult();
+        }
+    }
+
+    function enableNext() {
+        document.getElementById("next-btn").style.display = "flex";
+    }
+
+    function nextQuestion() {
+        let selectedOption = document.querySelector("input[name='option']:checked");
+        if (selectedOption) {
+            score += parseInt(selectedOption.value);
+            currentQuestion++;
+            displayQuestion();
+        }
+    }
+
+    function displayResult() {
+        let percentage = (score / (questions.length * 2)) * 100;
+        let severity = "Low Risk";
+        let precautions = "Maintain a healthy lifestyle and exercise regularly.";
+        let resultColor = "#2ecc71";
+
+        if (percentage > 30 && percentage <= 60) {
+            severity = "Moderate Risk";
+            precautions = "Monitor your symptoms and consider a medical check-up.";
+            resultColor = "#f1c40f";
+        } else if (percentage > 60) {
+            severity = "High Risk - Seek Medical Attention!";
+            precautions = "Consult a cardiologist immediately for further evaluation.";
+            resultColor = "#ff4757";
+        }
+        
+        document.getElementById("quiz").innerHTML = "";
+        document.getElementById("result").innerHTML = `
+            <h3 style="color: ${resultColor}">Your Risk Level: ${severity}</h3>
+            <p style="color: ${resultColor}">Risk Score: ${percentage.toFixed(2)}%</p>
+        `;
+        document.getElementById("precautions").innerHTML = `<p>${precautions}</p>`;
+        document.getElementById("restart-btn").style.display = "flex";
+
+        // Send quiz results to server
+        fetch('/quiz/heart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                score: percentage,
+                result: severity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Quiz results saved successfully');
+            } else {
+                console.error('Error saving quiz results:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        document.getElementById("result").innerHTML = "";
+        document.getElementById("precautions").innerHTML = "";
+        document.getElementById("restart-btn").style.display = "none";
+        displayQuestion();
+    }
+    
+    displayQuestion();
+</script>
+{% endblock %}

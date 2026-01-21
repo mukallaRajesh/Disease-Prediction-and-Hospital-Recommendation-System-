@@ -1,0 +1,71 @@
+services:
+  # Healthcare Chatbot Application
+  healthcare-chatbot:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./instance:/app/instance
+      - ./users.db:/app/users.db
+    depends_on:
+      - ollama
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+  # Ollama Server
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Model Initializer (runs once to download model)
+  model-init:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - healthcare-network
+    depends_on:
+      - ollama
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama to start...' &&
+        sleep 20 &&
+        echo 'Checking if llama3-chatqa model exists...' &&
+        if ! ollama list | grep -q 'llama3-chatqa'; then
+          echo 'Downloading llama3-chatqa model...' &&
+          ollama pull llama3-chatqa &&
+          echo 'Model downloaded successfully!'
+        else
+          echo 'Model already exists!'
+        fi &&
+        echo 'Available models:' &&
+        ollama list
+      "
+    restart: "no"
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  healthcare-network:
+    driver: bridge 

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          
+            margin: 0;
+    
+        }
+
+        #chatbox {
+            max-width: 600px;
+            width: 100%;
+    
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        #chat-log {
+            overflow-y: auto; /* Scrollable */
+            margin-bottom: 20px; /* Space for input box */
+            margin-top: 30px;
+        }
+
+        .chat {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user {
+            background-color: #007bff; /* User message color */
+            color: white;
+            text-align: right;
+            align-self: flex-end; /* Align to right */
+        }
+
+        .bot {
+            background-color: #28a745; /* Bot message color */
+            color: white;
+            text-align: left;
+            align-self: flex-start; /* Align to left */
+        }
+
+        #input-box {
+            display: flex;
+            flex-direction: column; /* Stack input elements vertically */
+        }
+
+        input[type="number"], input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease; /* Smooth transition */
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: #007bff; /* Focus color */
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            color: white; /* Button text color */
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+
+        button:hover {
+            opacity: 0.8; /* Slightly transparent on hover */
+        }
+
+        button:nth-of-type(1) { background-color: #007bff; } /* Next button */
+        button:nth-of-type(2) { background-color: #28a745; } /* Add button */
+        button:nth-of-type(3) { background-color: #dc3545; } /* Submit button */
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        <h1>Healthcare Chatbot</h1>
+        <div id="chat-log"></div>
+        <div id="input-box">
+            <div id="step-1">
+                <input type="number" id="symptom-count" placeholder="Enter number of symptoms more than 2">
+                <button onclick="initializeSymptomInput()">Next</button>
+            </div>
+            <div id="step-2" style="display:none;">
+                <input type="text" id="symptom-input" placeholder="Enter a symptom">
+                <button onclick="addSymptom()">Add</button>
+                <button onclick="submitSymptoms()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        let symptoms = [];
+        let symptomCount = 0;
+
+        function appendMessage(sender, message) {
+            const chatDiv = document.createElement('div');
+            chatDiv.className = 'chat ' + (sender === 'user' ? 'user' : 'bot');
+            
+            // Use innerHTML to allow line breaks
+            chatDiv.innerHTML = sender === 'user' ? `You:<br>${message}` : `Bot:<br>${message}`;
+        
+            
+            chatLog.appendChild(chatDiv);
+            chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+        }
+
+        function initializeSymptomInput() {
+            symptomCount = parseInt(document.getElementById('symptom-count').value, 10);
+            
+            if (isNaN(symptomCount) || symptomCount <= 2) { // Ensure at least more than two symptoms
+                appendMessage('bot', 'Please enter a valid number of symptoms greater than two.');
+                return;
+            }
+            
+            appendMessage('bot', `Please enter ${symptomCount} symptoms one by one.`);
+            
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+        }
+
+        function addSymptom() {
+            const symptomInput = document.getElementById('symptom-input');
+            
+            const symptom = symptomInput.value.trim();
+            
+            if (symptom === '') return;
+
+            symptoms.push(symptom);
+            
+            appendMessage('user', symptom);
+            
+            symptomInput.value = '';
+
+           if (symptoms.length === symptomCount) {
+                appendMessage('bot', 'You have entered all symptoms. Click "Submit" to see predictions.');
+           }
+       }
+
+       async function submitSymptoms() {
+           if (symptoms.length !== symptomCount) {
+               appendMessage('bot', `Please enter all ${symptomCount} symptoms.`);
+               return;
+           }
+
+           try {
+               const response = await fetch('/predict', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ symptoms })
+               });
+               const result = await response.json();
+               if (response.ok) {
+                   result.forEach(item => {
+                       appendMessage('bot', `Disease: ${item.Disease}<br>Chances: ${item.Chances}%<br>Specialist: ${item.Specialist}<br>Description: ${item.Description}<br>Diet Recommendation: ${item['Diet Recommendation']}`);
+                   });
+               } else {
+                   appendMessage('bot', result.error || 'Something went wrong.');
+               }
+           } catch (error) {
+               appendMessage('bot', 'Error communicating with the server.');
+           }
+       }
+    </script>
+</body>
+</html>

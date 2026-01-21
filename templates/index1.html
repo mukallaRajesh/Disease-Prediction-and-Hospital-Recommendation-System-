@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        #chatbox {
+            max-width: 600px;
+            width: 100%;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        #chat-log {
+            overflow-y: auto;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+
+        .chat {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+            align-self: flex-end;
+        }
+
+        .bot {
+            background-color: #28a745;
+            color: white;
+            text-align: left;
+            align-self: flex-start;
+        }
+
+        #input-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        select, input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        button:nth-of-type(1) { background-color: #007bff; }
+        button:nth-of-type(2) { background-color: #28a745; }
+        button:nth-of-type(3) { background-color: #dc3545; }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        <h1>Healthcare Chatbot</h1>
+        <div id="chat-log"></div>
+        <div id="input-box">
+            <div id="step-1">
+                <input type="number" id="symptom-count" placeholder="Enter number of symptoms (more than 2)">
+                <button onclick="initializeSymptomInput()">Next</button>
+            </div>
+            <div id="step-2" style="display:none;">
+                <select id="symptom-dropdown">
+                    <option value="" disabled selected>Select a symptom</option>
+                </select>
+                <button onclick="addSymptom()">Add</button>
+                <button onclick="submitSymptoms()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        let symptoms = [];
+        let symptomCount = 0;
+        let allSymptoms = [];
+
+        // Append message to the chat log
+        function appendMessage(sender, message) {
+            const chatDiv = document.createElement('div');
+            chatDiv.className = 'chat ' + (sender === 'user' ? 'user' : 'bot');
+            chatDiv.innerHTML = sender === 'user' ? `You:<br>${message}` : `Bot:<br>${message}`;
+            chatLog.appendChild(chatDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // Fetch symptom data from the server to populate the dropdown
+        async function fetchSymptoms() {
+            try {
+                const response = await fetch('/get_symptoms');
+                const data = await response.json();
+                if (response.ok) {
+                    allSymptoms = data.symptoms;
+                    const dropdown = document.getElementById('symptom-dropdown');
+                    allSymptoms.forEach(symptom => {
+                        const option = document.createElement('option');
+                        option.value = symptom;
+                        option.innerText = symptom;
+                        dropdown.appendChild(option);
+                    });
+                } else {
+                    appendMessage('bot', 'Error fetching symptoms data.');
+                }
+            } catch (error) {
+                appendMessage('bot', 'Error communicating with the server.');
+            }
+        }
+
+        function initializeSymptomInput() {
+            symptomCount = parseInt(document.getElementById('symptom-count').value, 10);
+            if (isNaN(symptomCount) || symptomCount <= 2) {
+                appendMessage('bot', 'Please enter a valid number of symptoms greater than two.');
+                return;
+            }
+            appendMessage('bot', `Please select ${symptomCount} symptoms from the list.`);
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+
+            fetchSymptoms();
+        }
+
+        function addSymptom() {
+            const symptomDropdown = document.getElementById('symptom-dropdown');
+            const symptom = symptomDropdown.value;
+
+            if (!symptom || symptoms.includes(symptom)) return;
+
+            symptoms.push(symptom);
+            appendMessage('user', symptom);
+
+            if (symptoms.length === symptomCount) {
+                appendMessage('bot', 'You have entered all symptoms. Click "Submit" to see predictions.');
+            }
+        }
+
+        async function submitSymptoms() {
+            if (symptoms.length !== symptomCount) {
+                appendMessage('bot', `Please select all ${symptomCount} symptoms.`);
+                return;
+            }
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symptoms })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    result.forEach(item => {
+                        appendMessage('bot', `Disease: ${item.Disease}<br>Chances: ${item.Chances}%<br>Specialist: ${item.Specialist}<br>Description: ${item.Description}<br>Diet Recommendation: ${item['Diet Recommendation']}`);
+                    });
+                } else {
+                    appendMessage('bot', result.error || 'Something went wrong.');
+                }
+            } catch (error) {
+                appendMessage('bot', 'Error communicating with the server.');
+            }
+        }
+    </script>
+</body>
+</html>

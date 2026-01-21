@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to AI Health Assistant{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-5 mb-5">
+        <h1 class="display-4 fw-bold mb-4">Your AI-Powered Health Companion</h1>
+        <p class="lead mb-4">Experience the future of healthcare with our intelligent disease prediction and health assessment system</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg me-3">Get Started</a>
+            <a href="#features" class="btn btn-outline-primary btn-lg">Learn More</a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="features" class="features-section mb-5">
+        <h2 class="text-center mb-4">Key Features</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-stethoscope fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title h4">Disease Prediction</h3>
+                        <p class="card-text">Advanced AI algorithms analyze your symptoms to predict potential health conditions with high accuracy.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-robot fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title h4">AI Chatbot</h3>
+                        <p class="card-text">24/7 health assistance with our intelligent chatbot, providing instant answers to your health queries.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-md fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title h4">Specialist Recommendations</h3>
+                        <p class="card-text">Get personalized recommendations for medical specialists based on your health conditions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Quizzes Section -->
+    <div class="quizzes-section mb-5">
+        <h2 class="text-center mb-4">Health Assessment Tools</h2>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-heart fa-3x me-3 text-primary"></i>
+                            <div>
+                                <h3 class="card-title h4">Heart Health Quiz</h3>
+                                <p class="card-text">Assess your heart health with our comprehensive quiz and get personalized recommendations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lungs fa-3x me-3 text-primary"></i>
+                            <div>
+                                <h3 class="card-title h4">Lung Health Quiz</h3>
+                                <p class="card-text">Evaluate your respiratory health and receive expert advice on maintaining healthy lungs.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="how-it-works-section mb-5">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">1</div>
+                    <h4>Sign Up</h4>
+                    <p>Create your account to access all features</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">2</div>
+                    <h4>Input Symptoms</h4>
+                    <p>Describe your symptoms or take health quizzes</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">3</div>
+                    <h4>Get Analysis</h4>
+                    <p>Receive AI-powered health predictions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="step-number mb-3">4</div>
+                    <h4>Take Action</h4>
+                    <p>Get specialist recommendations and health advice</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="cta-section text-center py-5">
+        <h2 class="mb-4">Ready to Take Control of Your Health?</h2>
+        <p class="lead mb-4">Join thousands of users who are already benefiting from our AI health assistant</p>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">Start Your Health Journey Today</a>
+    </div>
+</div>
+
+<style>
+.landing-page {
+    padding: 2rem 0;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1));
+    border-radius: 15px;
+    padding: 4rem 2rem;
+}
+
+.cta-buttons {
+    margin-top: 2rem;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-weight: bold;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1));
+    border-radius: 15px;
+    margin-top: 2rem;
+}
+
+.card {
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Lung Disease Assessment - Health Assistant{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="quiz-card">
+        <div class="quiz-header">
+            <i class="fas fa-lungs"></i>
+            <h2>Lung Disease Risk Assessment</h2>
+            <p>Answer these questions to evaluate your lung health risk</p>
+        </div>
+
+        <div class="quiz-progress">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <span class="progress-text">Question <span id="current-question">1</span> of <span id="total-questions">5</span></span>
+        </div>
+
+        <div id="quiz" class="quiz-content">
+            <p class="question" id="question"></p>
+            <div class="options" id="options"></div>
+            <button id="next-btn" onclick="nextQuestion()" class="quiz-btn">
+                <span>Next Question</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <div id="result" class="result-section"></div>
+        <div id="precautions" class="precautions-section"></div>
+        <button id="restart-btn" onclick="restartQuiz()" class="quiz-btn restart-btn">
+            <i class="fas fa-redo"></i>
+            <span>Restart Quiz</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .quiz-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .quiz-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 700px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .quiz-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .quiz-header i {
+        font-size: 3rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+        animation: breathe 4s ease-in-out infinite;
+    }
+
+    .quiz-header h2 {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .quiz-header p {
+        color: var(--text-color);
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+
+    .quiz-progress {
+        margin-bottom: 2rem;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: rgba(52, 152, 219, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress {
+        height: 100%;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        color: var(--text-color);
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .quiz-content {
+        margin-bottom: 2rem;
+    }
+
+    .question {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .options label {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: rgba(52, 152, 219, 0.1);
+        border: 2px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--text-color);
+    }
+
+    .options label:hover {
+        background: rgba(52, 152, 219, 0.2);
+        transform: translateX(5px);
+    }
+
+    .options input[type="radio"] {
+        margin-right: 1rem;
+        accent-color: #3498db;
+    }
+
+    .options input[type="radio"]:checked + span {
+        color: #3498db;
+        font-weight: 500;
+    }
+
+    .quiz-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        display: none;
+    }
+
+    .quiz-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .quiz-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .quiz-btn:hover i {
+        transform: translateX(5px);
+    }
+
+    .restart-btn {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .restart-btn:hover {
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .result-section {
+        text-align: center;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: rgba(52, 152, 219, 0.1);
+    }
+
+    .result-section h3 {
+        color: #3498db;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .precautions-section {
+        text-align: center;
+        margin: 1rem 0;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: rgba(46, 204, 113, 0.1);
+    }
+
+    .precautions-section p {
+        color: #2ecc71;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes breathe {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+        .quiz-card {
+            padding: 2rem;
+        }
+    }
+</style>
+
+<script>
+    const questions = [
+    { q: "How often do you experience shortness of breath during daily activities?", options: ["Never", "Occasionally (during physical exertion)", "Frequently (even with minimal effort)", "Almost always (even at rest)"] },
+            { q: "Do you have a persistent cough that lasts more than eight weeks?", options: ["No, I rarely cough", "Only when I have a cold", "Yes, but it's mild and occasional", "Yes, and it's frequent with mucus production"] },
+            { q: "How often do you experience chest tightness or pain?", options: ["Never", "Occasionally, but it goes away quickly", "Frequently, especially when breathing deeply", "Almost always, and it worsens over time"] },
+            { q: "Do you frequently cough up mucus or phlegm?", options: ["No, rarely or never", "Only during infections", "Yes, at least a few times a week", "Yes, daily and in large amounts"] },
+            { q: "Have you ever been diagnosed with a lung condition such as asthma, COPD, or pulmonary fibrosis?", options: ["No, never", "No, but I have a family history of lung disease", "Yes, but it's under control", "Yes, and I often struggle with symptoms"] },
+            { q: "Do you smoke or have you been exposed to secondhand smoke for a long time?", options: ["No, I've never smoked or been exposed", "Occasionally exposed but don't smoke", "I used to smoke but quit", "I smoke regularly or have long-term exposure"] },
+            { q: "Do you experience frequent respiratory infections (cold, bronchitis, pneumonia)?", options: ["No, rarely", "Sometimes, but I recover quickly", "Yes, I get sick often", "Yes, and I have difficulty recovering"] },
+            { q: "Do you feel breathless even when speaking or sitting still?", options: ["No, never", "Sometimes, when I am anxious or tired", "Yes, frequently, even when relaxed", "Yes, almost always, making daily activities difficult"] },
+            { q: "Do you feel a tight or heavy sensation in your chest often?", options: ["No, never", "Occasionally, but it goes away quickly", "Yes, frequently and it lasts a while", "Yes, almost daily and it worsens with time"] },
+            { q: "Have you been exposed to dust, pollution, or chemicals for long periods?", options: ["No, never", "Occasionally, but not regularly", "Yes, frequently for years", "Yes, and I experience lung-related symptoms"] }
+        ];
+    
+    let currentQuestion = 0;
+    let score = 0;
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / questions.length) * 100;
+        document.getElementById("progress").style.width = `${progress}%`;
+        document.getElementById("current-question").textContent = currentQuestion + 1;
+        document.getElementById("total-questions").textContent = questions.length;
+    }
+
+    function displayQuestion() {
+        if (currentQuestion < questions.length) {
+            document.getElementById("question").innerText = questions[currentQuestion].q;
+            let optionsHtml = "";
+            questions[currentQuestion].options.forEach((option, index) => {
+                optionsHtml += `
+                    <label>
+                        <input type='radio' name='option' value='${index}' onclick='enableNext()'>
+                        <span>${option}</span>
+                    </label>`;
+            });
+            document.getElementById("options").innerHTML = optionsHtml;
+            document.getElementById("next-btn").style.display = "none";
+            updateProgress();
+        } else {
+            displayResult();
+        }
+    }
+
+    function enableNext() {
+        document.getElementById("next-btn").style.display = "flex";
+    }
+
+    function nextQuestion() {
+        let selectedOption = document.querySelector("input[name='option']:checked");
+        if (selectedOption) {
+            score += parseInt(selectedOption.value);
+            currentQuestion++;
+            displayQuestion();
+        }
+    }
+
+    function displayResult() {
+        let percentage = (score / (questions.length * 3)) * 100;
+        let severity = "Low Risk";
+        let precautions = "Maintain a healthy lifestyle and avoid pollutants.";
+        let resultColor = "#2ecc71";
+
+        if (percentage > 30 && percentage <= 60) {
+            severity = "Moderate Risk";
+            precautions = "Consider consulting a doctor if symptoms persist.";
+            resultColor = "#f1c40f";
+        } else if (percentage > 60) {
+            severity = "High Risk - Seek Medical Attention!";
+            precautions = "Consult a healthcare professional immediately.";
+            resultColor = "#e74c3c";
+        }
+        
+        document.getElementById("quiz").innerHTML = "";
+        document.getElementById("result").innerHTML = `
+            <h3 style="color: ${resultColor}">Your Risk Level: ${severity}</h3>
+            <p style="color: ${resultColor}">Risk Score: ${percentage.toFixed(2)}%</p>
+        `;
+        document.getElementById("precautions").innerHTML = `<p>${precautions}</p>`;
+        document.getElementById("restart-btn").style.display = "flex";
+
+        // Send quiz results to server
+        fetch('/quiz/lung', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                score: percentage,
+                result: severity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Quiz results saved successfully');
+            } else {
+                console.error('Error saving quiz results:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        document.getElementById("result").innerHTML = "";
+        document.getElementById("precautions").innerHTML = "";
+        document.getElementById("restart-btn").style.display = "none";
+        displayQuestion();
+    }
+    
+    displayQuestion();
+</script>
+{% endblock %}

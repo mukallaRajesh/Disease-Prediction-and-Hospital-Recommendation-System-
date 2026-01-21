@@ -1,0 +1,19 @@
+services:
+  # Healthcare Chatbot Application (Simplified - No Ollama)
+  healthcare-chatbot:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    volumes:
+      - ./instance:/app/instance
+      - ./users.db:/app/users.db
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+networks:
+  healthcare-network:
+    driver: bridge 
