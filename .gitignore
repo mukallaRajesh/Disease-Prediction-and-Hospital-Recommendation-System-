@@ -4,4 +4,7 @@ __pycache__/
 venv/
 .env
 users.db
+.hf_cache/users.db
+
+users.db
 .hf_cache/
