@@ -1,17 +1,22 @@
+import os
+from pathlib import Path
+
 from flask import Flask, request, jsonify, render_template
 import pandas as pd
 from collections import Counter
 import joblib
 
+BASE_DIR = Path(__file__).resolve().parent
+
 # Flask app initialization
 app = Flask(__name__)
 
 # Load the pre-trained models and data
-dis_sym_data_v1 = pd.read_csv("Processed_Dataset.csv")  # Replace with your dataset path
-doc_data = pd.read_csv("Doctor_Versus_Disease.csv", encoding='latin1', names=['Disease', 'Specialist'])
-des_data = pd.read_csv("Disease_Description.csv")
-algorithms = joblib.load("trained_algorithms.pkl")  # Save algorithms dict after training
-le = joblib.load("label_encoder.pkl")  # Save the label encoder after training
+dis_sym_data_v1 = pd.read_csv(BASE_DIR / "Processed_Dataset1.csv")
+doc_data = pd.read_csv(BASE_DIR / "Doctor_Versus_Disease.csv", encoding='latin1', names=['Disease', 'Specialist'])
+des_data = pd.read_csv(BASE_DIR / "Disease_Description.csv")
+algorithms = joblib.load(BASE_DIR / "trained_algorithms.pkl")  # Save algorithms dict after training
+le = joblib.load(BASE_DIR / "label_encoder.pkl")  # Save the label encoder after training
 
 # Column names excluding 'Disease'
 dis_sym_data_v1 = dis_sym_data_v1.loc[:, ~dis_sym_data_v1.columns.str.contains('^Unnamed')]
@@ -120,12 +125,20 @@ def get_symptoms():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.json
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Request body must be a JSON object."}), 400
+
     symptoms = data.get('symptoms', [])
     allergies = data.get('allergies', [])
 
+    if not isinstance(symptoms, list) or any(not isinstance(symptom, str) for symptom in symptoms):
+        return jsonify({"error": "Symptoms must be a list of symptom names."}), 400
     if not symptoms:
         return jsonify({"error": "No symptoms provided."}), 400
+
+    if not isinstance(allergies, list) or any(not isinstance(allergy, str) for allergy in allergies):
+        return jsonify({"error": "Allergies must be a list of names."}), 400
 
     invalid_symptoms = [symptom for symptom in symptoms if symptom not in test_col]
     if invalid_symptoms:
@@ -135,7 +148,7 @@ def predict():
     test_df = pd.DataFrame(test_data, index=[0])
 
     predicted = []
-    for model_name, values in algorithms.items():
+    for values in algorithms.values():
         predict_disease = values["model"].predict(test_df)
         predict_disease = le.inverse_transform(predict_disease)
         predicted.extend(predict_disease)
